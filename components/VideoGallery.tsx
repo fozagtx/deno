@@ -109,8 +109,8 @@ export default function VideoGallery({ refreshTrigger }: VideoGalleryProps) {
               Generate your first AI video to see it here. Your creative journey starts with a single prompt.
             </p>
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 text-sm text-gray-700 dark:text-gray-300">
-              <p className="font-medium mb-1">Note about SoraV2 API</p>
-              <p className="text-xs">The SoraV2 API doesn&apos;t support listing all videos. Videos will appear here during active sessions.</p>
+              <p className="font-medium mb-1">Note about OpenAI Sora API</p>
+              <p className="text-xs">The OpenAI Sora API doesn&apos;t support listing all videos. Videos will appear here during active sessions.</p>
             </div>
           </div>
         </div>

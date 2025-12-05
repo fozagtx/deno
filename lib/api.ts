@@ -47,7 +47,7 @@ export class SoraVideoAPI {
   }
 
   static async getAllVideos(): Promise<ApiResponse<SoraVideoResponse[]>> {
-    // Note: SoraV2 API doesn't provide a "list all videos" endpoint
+    // Note: OpenAI Sora API doesn't provide a "list all videos" endpoint
     // This method returns an empty array with an explanation message
     try {
       const response = await fetch(`${API_BASE_URL}/api/gen`);

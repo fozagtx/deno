@@ -205,7 +205,8 @@ export default function VideoGenerator({ onVideoGenerated }: VideoGeneratorProps
                       <p className="font-semibold mb-2">Setup Instructions:</p>
                       <ol className="list-decimal list-inside space-y-1 ml-1">
                         <li>Copy <code className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">.env.example</code> to <code className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">.env.local</code></li>
-                        <li>Add your SoraV2 API key to <code className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">SORA_V2_API_KEY</code></li>
+                        <li>Add your OpenAI API key to <code className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">OPENAI_API_KEY</code></li>
+                        <li>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">platform.openai.com</a></li>
                         <li>Restart the development server</li>
                       </ol>
                     </div>

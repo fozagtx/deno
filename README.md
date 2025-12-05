@@ -1,16 +1,17 @@
-# SoraV2 Video Generator
+# Sora Video Studio
 
-A Next.js 16 application for generating AI-powered videos using SoraV2 API. This project provides a complete frontend and API solution for video generation with TypeScript support and download functionality.
+A Next.js 16 application for generating AI-powered videos using OpenAI's Sora API. This project provides a complete frontend and API solution for video generation with TypeScript support and download functionality.
 
 ## Features
 
-- **Video Generation**: Generate videos from text prompts using SoraV2 AI
-- **Real-time Progress Tracking**: Monitor generation progress with live updates from SoraV2
+- **Video Generation**: Generate videos from text prompts using OpenAI Sora AI
+- **Real-time Progress Tracking**: Monitor generation progress with live updates from OpenAI Sora
 - **Video Gallery**: View all generated videos in a responsive gallery
-- **Download Support**: Download generated videos directly from SoraV2 storage
+- **Download Support**: Download generated videos directly from OpenAI Sora storage
 - **TypeScript Support**: Full TypeScript implementation with proper type definitions
 - **Dark Mode**: Built-in dark mode support
-- **Responsive Design**: Mobile-friendly interface using Tailwind CSS
+- **Responsive Design**: Mobile-friendly interface using Tailwind CSS v4
+- **Modern UI**: Pixel-perfect design with glassmorphism and gradient effects
 
 ## Tech Stack
 
@@ -18,14 +19,14 @@ A Next.js 16 application for generating AI-powered videos using SoraV2 API. This
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **UI Components**: Custom React components
-- **API**: Next.js API routes with SoraV2 integration
+- **API**: Next.js API routes with OpenAI Sora integration
 - **Image Optimization**: Next.js Image component
 
 ## Prerequisites
 
 Before using this application, you need:
 
-1. **SoraV2 API Key**: Obtain your API key from the SoraV2 dashboard
+1. **OpenAI API Key**: Obtain your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 2. **Node.js**: Version 18 or higher
 3. **npm or yarn**: Package manager
 
@@ -38,11 +39,10 @@ Before using this application, you need:
 
 2. **Configure your environment variables:**
    ```env
-   SORA_V2_API_KEY=your_sora_v2_api_key_here
-   SORA_V2_API_ENDPOINT=https://api.sora.v2/v1
+   OPENAI_API_KEY=your_openai_api_key_here
    ```
 
-   The `SORA_V2_API_KEY` is required. The `SORA_V2_API_ENDPOINT` defaults to the official SoraV2 API endpoint if not specified.
+   The `OPENAI_API_KEY` is required. Get your API key from [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys).
 
 ## Project Structure
 
@@ -121,7 +121,7 @@ Get details of a specific video (or all videos if no ID is provided).
 2. **Configure environment variables:**
    ```bash
    cp .env.example .env.local
-   # Edit .env.local with your SoraV2 API key
+   # Edit .env.local with your OpenAI API key
    ```
 
 3. **Run the development server:**
@@ -166,35 +166,34 @@ The project includes comprehensive TypeScript types for type safety:
 
 ## Development Notes
 
-- This application integrates directly with the SoraV2 API for video generation
-- All video processing and storage is handled by SoraV2 infrastructure
-- API calls are authenticated using Bearer tokens
+- This application integrates directly with the OpenAI Sora API for video generation
+- All video processing and storage is handled by OpenAI infrastructure
+- API calls are authenticated using Bearer tokens with your OpenAI API key
 - The application supports both light and dark themes
-- Error handling includes proper API error responses from SoraV2
+- Error handling includes proper API error responses from OpenAI
+- Uses `sora-2` model for standard quality and `sora-2-pro` for 4K quality
 
 ## API Integration Details
 
-### SoraV2 API Endpoints Used
+### OpenAI Sora API Endpoints Used
 
-1. **Video Generation**: `POST /v1/generate`
-   - Submits video generation requests to SoraV2
+1. **Video Generation**: `POST /v1/videos`
+   - Submits video generation requests to OpenAI Sora
+   - Supports models: `sora-2` and `sora-2-pro`
    - Returns video ID and initial status
 
 2. **Video Status**: `GET /v1/videos/{id}`
    - Retrieves current video status and metadata
    - Returns video URLs when generation is complete
+   - Also used for progress tracking
 
-3. **Progress Tracking**: `GET /v1/videos/{id}/progress`
-   - Real-time progress updates during generation
-   - Includes current step and estimated time remaining
-
-4. **Download**: `GET /v1/videos/{id}/download`
-   - Generates temporary download URLs for completed videos
+3. **Download**: `GET /v1/videos/{id}/download`
+   - Generates download URLs for completed videos
    - Redirects to actual video file storage
 
 ### Error Handling
 
-The application handles various SoraV2 API errors:
+The application handles various OpenAI API errors:
 - Authentication failures (401/403)
 - Rate limiting (429)
 - Invalid requests (400)

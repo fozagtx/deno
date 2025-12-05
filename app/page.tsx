@@ -88,8 +88,8 @@ export default function Home() {
               </svg>
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">Powered by SoraV2 AI</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Next-generation video synthesis technology</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Powered by OpenAI Sora</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Next-generation AI video synthesis</p>
             </div>
           </div>
           <p className="mt-6 text-sm text-gray-500 dark:text-gray-500">

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiResponse, GenerationProgress } from '@/types';
 
-// SoraV2 API configuration
-const SORA_API_KEY = process.env.SORA_V2_API_KEY;
-const SORA_API_ENDPOINT = process.env.SORA_V2_API_ENDPOINT || 'https://api.sora.v2/v1';
+// OpenAI Sora API configuration
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1';
 
-if (!SORA_API_KEY) {
-  console.warn('WARNING: SORA_V2_API_KEY environment variable is not set');
+if (!OPENAI_API_KEY) {
+  console.warn('WARNING: OPENAI_API_KEY environment variable is not set');
 }
 
 export async function GET(request: NextRequest) {
@@ -22,15 +22,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate API key
-    if (!SORA_API_KEY) {
+    if (!OPENAI_API_KEY) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'SoraV2 API key is not configured' },
+        { success: false, error: 'OpenAI API key is not configured' },
         { status: 500 }
       );
     }
 
-    // Get progress from SoraV2 API
-    const progress = await getProgressFromSoraV2(videoId);
+    // Get progress from OpenAI Sora API
+    const progress = await getProgressFromOpenAI(videoId);
 
     return NextResponse.json<ApiResponse<GenerationProgress>>({
       success: true,
@@ -46,12 +46,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getProgressFromSoraV2(videoId: string): Promise<GenerationProgress> {
+async function getProgressFromOpenAI(videoId: string): Promise<GenerationProgress> {
   try {
-    const response = await fetch(`${SORA_API_ENDPOINT}/videos/${videoId}/progress`, {
+    const response = await fetch(`${OPENAI_API_ENDPOINT}/videos/${videoId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${SORA_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
     });
@@ -61,21 +61,47 @@ async function getProgressFromSoraV2(videoId: string): Promise<GenerationProgres
         throw new Error('Video not found');
       }
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`SoraV2 API error: ${response.status} - ${errorData.message || response.statusText}`);
+      throw new Error(`OpenAI Sora API error: ${response.status} - ${errorData.message || errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
-    
-    // Transform SoraV2 response to our internal format
+
+    // Transform OpenAI Sora response to our internal format
+    // Map OpenAI status to progress percentage
+    let progress = 0;
+    let currentStep = 'Initializing';
+
+    switch (data.status) {
+      case 'pending':
+        progress = 10;
+        currentStep = 'Queued for processing';
+        break;
+      case 'processing':
+        progress = 50;
+        currentStep = 'Generating video';
+        break;
+      case 'completed':
+        progress = 100;
+        currentStep = 'Complete';
+        break;
+      case 'failed':
+        progress = 0;
+        currentStep = 'Failed';
+        break;
+      default:
+        progress = 0;
+        currentStep = data.status || 'Unknown';
+    }
+
     return {
       id: data.id,
-      progress: data.progress || 0,
+      progress: progress,
       status: data.status,
-      currentStep: data.current_step,
+      currentStep: currentStep,
       estimatedTimeRemaining: data.estimated_time_remaining,
     };
   } catch (error) {
-    console.error('Error getting progress from SoraV2:', error);
+    console.error('Error getting progress from OpenAI:', error);
     throw error;
   }
 }

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SoraVideoRequest, SoraVideoResponse, ApiResponse } from '@/types';
 
-// SoraV2 API configuration
-const SORA_API_KEY = process.env.SORA_V2_API_KEY;
-const SORA_API_ENDPOINT = process.env.SORA_V2_API_ENDPOINT || 'https://api.sora.v2/v1';
+// OpenAI Sora API configuration
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1';
 
-if (!SORA_API_KEY) {
-  console.warn('WARNING: SORA_V2_API_KEY environment variable is not set');
+if (!OPENAI_API_KEY) {
+  console.warn('WARNING: OPENAI_API_KEY environment variable is not set');
 }
 
 export async function POST(request: NextRequest) {
@@ -22,15 +22,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate API key
-    if (!SORA_API_KEY) {
+    if (!OPENAI_API_KEY) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'SoraV2 API key is not configured' },
+        { success: false, error: 'OpenAI API key is not configured' },
         { status: 500 }
       );
     }
 
-    // Call SoraV2 API to generate video
-    const soraResponse = await callSoraV2API(body);
+    // Call OpenAI Sora API to generate video
+    const soraResponse = await callOpenAISoraAPI(body);
 
     return NextResponse.json<ApiResponse<SoraVideoResponse>>({
       success: true,
@@ -52,25 +52,24 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const videoId = searchParams.get('id');
 
-    if (!SORA_API_KEY) {
+    if (!OPENAI_API_KEY) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: 'SoraV2 API key is not configured' },
+        { success: false, error: 'OpenAI API key is not configured' },
         { status: 500 }
       );
     }
 
     if (!videoId) {
-      // SoraV2 API doesn't support listing all videos
-      // Return empty array with explanation
+      // For now, return empty array (can be enhanced to use GET /v1/videos for listing)
       return NextResponse.json<ApiResponse<SoraVideoResponse[]>>({
         success: true,
         data: [],
-        message: 'SoraV2 API does not support listing all videos. Please use specific video IDs to retrieve individual videos.'
+        message: 'Video listing - provide a video ID to retrieve specific video status.'
       });
     }
 
-    // Get video status from SoraV2 API
-    const videoStatus = await getVideoStatusFromSoraV2(videoId);
+    // Get video status from OpenAI Sora API
+    const videoStatus = await getVideoStatusFromOpenAI(videoId);
 
     return NextResponse.json<ApiResponse<SoraVideoResponse>>({
       success: true,
@@ -86,15 +85,19 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function callSoraV2API(request: SoraVideoRequest): Promise<SoraVideoResponse> {
+async function callOpenAISoraAPI(request: SoraVideoRequest): Promise<SoraVideoResponse> {
   try {
-    const response = await fetch(`${SORA_API_ENDPOINT}/generate`, {
+    // Determine model based on resolution
+    const model = request.resolution === '4k' ? 'sora-2-pro' : 'sora-2';
+
+    const response = await fetch(`${OPENAI_API_ENDPOINT}/videos`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SORA_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        model: model,
         prompt: request.prompt.trim(),
         duration: request.duration || 10,
         resolution: request.resolution || '1080p',
@@ -105,38 +108,38 @@ async function callSoraV2API(request: SoraVideoRequest): Promise<SoraVideoRespon
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`SoraV2 API error: ${response.status} - ${errorData.message || response.statusText}`);
+      throw new Error(`OpenAI Sora API error: ${response.status} - ${errorData.message || errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
-    
-    // Transform SoraV2 response to our internal format
+
+    // Transform OpenAI Sora response to our internal format
     return {
       id: data.id,
-      status: data.status,
-      prompt: data.prompt,
-      videoUrl: data.video_url,
+      status: data.status || 'pending',
+      prompt: request.prompt,
+      videoUrl: data.video_url || data.url,
       thumbnailUrl: data.thumbnail_url,
-      duration: data.duration,
-      resolution: data.resolution,
-      style: data.style,
-      aspectRatio: data.aspect_ratio,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      duration: request.duration,
+      resolution: request.resolution,
+      style: request.style,
+      aspectRatio: request.aspectRatio,
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
       error: data.error,
     };
   } catch (error) {
-    console.error('Error calling SoraV2 API:', error);
+    console.error('Error calling OpenAI Sora API:', error);
     throw error;
   }
 }
 
-async function getVideoStatusFromSoraV2(videoId: string): Promise<SoraVideoResponse> {
+async function getVideoStatusFromOpenAI(videoId: string): Promise<SoraVideoResponse> {
   try {
-    const response = await fetch(`${SORA_API_ENDPOINT}/videos/${videoId}`, {
+    const response = await fetch(`${OPENAI_API_ENDPOINT}/videos/${videoId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${SORA_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
     });
@@ -146,28 +149,28 @@ async function getVideoStatusFromSoraV2(videoId: string): Promise<SoraVideoRespo
         throw new Error('Video not found');
       }
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`SoraV2 API error: ${response.status} - ${errorData.message || response.statusText}`);
+      throw new Error(`OpenAI Sora API error: ${response.status} - ${errorData.message || errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
-    
-    // Transform SoraV2 response to our internal format
+
+    // Transform OpenAI Sora response to our internal format
     return {
       id: data.id,
-      status: data.status,
-      prompt: data.prompt,
-      videoUrl: data.video_url,
+      status: data.status || 'pending',
+      prompt: data.prompt || '',
+      videoUrl: data.video_url || data.url,
       thumbnailUrl: data.thumbnail_url,
       duration: data.duration,
       resolution: data.resolution,
       style: data.style,
       aspectRatio: data.aspect_ratio,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
       error: data.error,
     };
   } catch (error) {
-    console.error('Error getting video status from SoraV2:', error);
+    console.error('Error getting video status from OpenAI:', error);
     throw error;
   }
 }
