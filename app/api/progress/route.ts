@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiResponse, GenerationProgress } from '@/types';
 
-// OpenAI API configuration (Sora uses the same key as other OpenAI services)
-// Support both OPENAI_API_KEY and SORA_V2_API_KEY for backward compatibility
-const SORA_API_KEY = process.env.OPENAI_API_KEY || process.env.SORA_V2_API_KEY;
+// OpenAI API configuration
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SORA_API_ENDPOINT = process.env.SORA_V2_API_ENDPOINT || 'https://api.openai.com/v1';
 
-if (!SORA_API_KEY) {
-  console.warn('WARNING: OPENAI_API_KEY or SORA_V2_API_KEY environment variable is not set');
+if (!OPENAI_API_KEY) {
+  console.warn('WARNING: OPENAI_API_KEY environment variable is not set');
 }
 
 export async function GET(request: NextRequest) {
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate API key
-    if (!SORA_API_KEY) {
+    if (!OPENAI_API_KEY) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: 'OpenAI API key is not configured' },
         { status: 500 }
@@ -52,7 +51,7 @@ async function getProgressFromSoraV2(videoId: string): Promise<GenerationProgres
     const response = await fetch(`${SORA_API_ENDPOINT}/videos/${videoId}/progress`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${SORA_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
     });
