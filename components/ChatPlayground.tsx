@@ -6,8 +6,6 @@ import { AI_MODELS, AIModel } from '@/types';
 import Artifact, { ArtifactType } from './Artifact';
 import {
   Send,
-  Upload,
-  Link,
   Mic,
   ChevronDown,
   X,
@@ -89,7 +87,6 @@ export default function ChatPlayground() {
   const [attachedFiles, setAttachedFiles] = useState<{ name: string; data: string; type: string }[]>(
     []
   );
-  const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [artifact, setArtifact] = useState<ArtifactData>({
@@ -138,22 +135,6 @@ export default function ChatPlayground() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
-  };
 
   const handleFiles = (files: File[]) => {
     files.forEach((file) => {
@@ -345,37 +326,15 @@ export default function ChatPlayground() {
       {/* Input Area */}
       <div className="border-t border-white/10 p-3 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
-          {/* Compact Drop Zone - Only show for vision models */}
+          {/* Hidden file input for image upload */}
           {selectedModel.supportsImage && (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={cn(
-                'mb-3 border border-dashed rounded-lg p-3 text-center transition-colors',
-                isDragging
-                  ? 'border-violet-500 bg-violet-500/10'
-                  : 'border-white/10 hover:border-white/20'
-              )}
-            >
-              <div className="flex items-center justify-center gap-3">
-                <p className="text-white/40 text-xs">Drop images or</p>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs hover:bg-violet-500/30 transition-colors flex items-center gap-1.5"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  Browse
-                </button>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileInput}
-                className="hidden"
-              />
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileInput}
+              className="hidden"
+            />
           )}
 
           {/* Attached Files */}
