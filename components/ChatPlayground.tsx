@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { AI_MODELS, AIModel } from '@/types';
+import Artifact, { ArtifactType } from './Artifact';
 import {
   Send,
   Upload,
@@ -16,15 +17,69 @@ import {
   Image as ImageIcon,
   FileText,
   Check,
+  Code,
+  Sparkles,
 } from 'lucide-react';
 
 interface DisplayMessage {
   role: 'user' | 'assistant';
   content: string;
   image?: string;
+  hasArtifact?: boolean;
+  artifactType?: ArtifactType;
+  artifactTitle?: string;
+  artifactContent?: string;
+  artifactLanguage?: string;
+}
+
+interface ArtifactData {
+  isOpen: boolean;
+  type: ArtifactType;
+  title: string;
+  content: string;
+  language?: string;
 }
 
 const chatModels = AI_MODELS.filter((m) => m.type !== 'video');
+
+// Helper to detect and extract artifacts from response
+function extractArtifact(content: string): { cleanContent: string; artifact: Omit<ArtifactData, 'isOpen'> | null } {
+  // Check for code blocks
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/;
+  const codeMatch = content.match(codeBlockRegex);
+
+  if (codeMatch) {
+    const language = codeMatch[1] || 'code';
+    const code = codeMatch[2].trim();
+    const cleanContent = content.replace(codeBlockRegex, '[Code generated - click to view]').trim();
+    return {
+      cleanContent,
+      artifact: {
+        type: 'code',
+        title: `Generated ${language.charAt(0).toUpperCase() + language.slice(1)}`,
+        content: code,
+        language,
+      },
+    };
+  }
+
+  // Check for profile generation patterns
+  const profilePatterns = [/profile:?\s*\n/i, /^(name|title|bio|about):/im];
+  for (const pattern of profilePatterns) {
+    if (pattern.test(content) && content.length > 200) {
+      return {
+        cleanContent: 'Profile generated - click to view',
+        artifact: {
+          type: 'profile',
+          title: 'Generated Profile',
+          content,
+        },
+      };
+    }
+  }
+
+  return { cleanContent: content, artifact: null };
+}
 
 export default function ChatPlayground() {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
@@ -37,11 +92,33 @@ export default function ChatPlayground() {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [artifact, setArtifact] = useState<ArtifactData>({
+    isOpen: false,
+    type: 'code',
+    title: '',
+    content: '',
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const modelSelectorRef = useRef<HTMLDivElement>(null);
+
+  const openArtifact = (message: DisplayMessage) => {
+    if (message.hasArtifact && message.artifactContent) {
+      setArtifact({
+        isOpen: true,
+        type: message.artifactType || 'text',
+        title: message.artifactTitle || 'Generated Content',
+        content: message.artifactContent,
+        language: message.artifactLanguage,
+      });
+    }
+  };
+
+  const closeArtifact = () => {
+    setArtifact((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -138,7 +215,29 @@ export default function ChatPlayground() {
       const data = await response.json();
 
       if (data.success && data.data) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.data.content }]);
+        const responseContent = data.data.content;
+        const { cleanContent, artifact: extractedArtifact } = extractArtifact(responseContent);
+
+        const assistantMessage: DisplayMessage = {
+          role: 'assistant',
+          content: cleanContent,
+        };
+
+        if (extractedArtifact) {
+          assistantMessage.hasArtifact = true;
+          assistantMessage.artifactType = extractedArtifact.type;
+          assistantMessage.artifactTitle = extractedArtifact.title;
+          assistantMessage.artifactContent = extractedArtifact.content;
+          assistantMessage.artifactLanguage = extractedArtifact.language;
+
+          // Auto-open artifact for generated content
+          setArtifact({
+            isOpen: true,
+            ...extractedArtifact,
+          });
+        }
+
+        setMessages((prev) => [...prev, assistantMessage]);
       } else {
         setError(data.error || 'Failed to get response');
       }
@@ -150,9 +249,9 @@ export default function ChatPlayground() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a]">
+    <div className={cn('flex flex-col h-full bg-[#0a0a0a]', artifact.isOpen && 'md:pr-[480px]')}>
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center px-4">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-white/10 flex items-center justify-center mb-6">
@@ -164,29 +263,29 @@ export default function ChatPlayground() {
             </p>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
+          <div className="max-w-3xl mx-auto py-4 px-4 space-y-4">
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={cn('flex gap-4', message.role === 'user' ? 'flex-row-reverse' : '')}
+                className={cn('flex gap-3', message.role === 'user' ? 'flex-row-reverse' : '')}
               >
                 <div
                   className={cn(
-                    'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+                    'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0',
                     message.role === 'user'
                       ? 'bg-violet-500/20 text-violet-400'
                       : 'bg-white/10 text-white/60'
                   )}
                 >
                   {message.role === 'user' ? (
-                    <User className="w-4 h-4" />
+                    <User className="w-3.5 h-3.5" />
                   ) : (
-                    <Bot className="w-4 h-4" />
+                    <Bot className="w-3.5 h-3.5" />
                   )}
                 </div>
                 <div
                   className={cn(
-                    'flex-1 max-w-[80%]',
+                    'flex-1 max-w-[85%] min-w-0',
                     message.role === 'user' ? 'text-right' : ''
                   )}
                 >
@@ -194,34 +293,47 @@ export default function ChatPlayground() {
                     <img
                       src={message.image}
                       alt="Attached"
-                      className="max-w-xs rounded-lg mb-2 inline-block"
+                      className="max-w-[200px] max-h-[150px] object-contain rounded-lg mb-2 inline-block"
                     />
                   )}
                   <div
                     className={cn(
-                      'inline-block px-4 py-3 rounded-2xl text-sm',
+                      'inline-block px-3 py-2 rounded-xl text-sm',
                       message.role === 'user'
                         ? 'bg-violet-500 text-white'
                         : 'bg-white/5 text-white/90 border border-white/10'
                     )}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                    {message.hasArtifact && (
+                      <button
+                        onClick={() => openArtifact(message)}
+                        className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-violet-500/20 hover:bg-violet-500/30 text-violet-400 rounded-lg text-xs transition-colors"
+                      >
+                        {message.artifactType === 'code' ? (
+                          <Code className="w-3.5 h-3.5" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5" />
+                        )}
+                        View {message.artifactTitle || 'Generated Content'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
             {isLoading && (
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white/60" />
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Bot className="w-3.5 h-3.5 text-white/60" />
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-violet-400" />
+                <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
                 </div>
               </div>
             )}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -231,32 +343,29 @@ export default function ChatPlayground() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-white/10 p-4">
+      <div className="border-t border-white/10 p-3 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
-          {/* Drop Zone - Only show for vision models */}
+          {/* Compact Drop Zone - Only show for vision models */}
           {selectedModel.supportsImage && (
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={cn(
-                'mb-4 border-2 border-dashed rounded-xl p-6 text-center transition-colors',
+                'mb-3 border border-dashed rounded-lg p-3 text-center transition-colors',
                 isDragging
                   ? 'border-violet-500 bg-violet-500/10'
                   : 'border-white/10 hover:border-white/20'
               )}
             >
-              <p className="text-violet-400 font-medium mb-1">Drop anything here or browse</p>
-              <p className="text-white/40 text-sm mb-4">Images for vision analysis</p>
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-3">
+                <p className="text-white/40 text-xs">Drop images or</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-10 h-10 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center hover:bg-violet-500/30 transition-colors"
+                  className="px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs hover:bg-violet-500/30 transition-colors flex items-center gap-1.5"
                 >
-                  <Upload className="w-5 h-5" />
-                </button>
-                <button className="w-10 h-10 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center hover:bg-violet-500/30 transition-colors">
-                  <Link className="w-5 h-5" />
+                  <Upload className="w-3.5 h-3.5" />
+                  Browse
                 </button>
               </div>
               <input
@@ -419,6 +528,16 @@ export default function ChatPlayground() {
           </div>
         </div>
       </div>
+
+      {/* Artifact Panel */}
+      <Artifact
+        isOpen={artifact.isOpen}
+        onClose={closeArtifact}
+        type={artifact.type}
+        title={artifact.title}
+        content={artifact.content}
+        language={artifact.language}
+      />
     </div>
   );
 }

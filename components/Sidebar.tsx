@@ -4,17 +4,15 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   MessageSquare,
-  Video,
   Settings,
   HelpCircle,
   ChevronLeft,
   Sparkles,
-  GraduationCap,
   FolderOpen,
   Wrench,
 } from 'lucide-react';
 
-type NavItem = 'playground' | 'video' | 'courses' | 'profiles' | 'tools';
+type NavItem = 'playground' | 'profiles' | 'tools';
 
 interface SidebarProps {
   activeNav: NavItem;
@@ -23,8 +21,6 @@ interface SidebarProps {
 
 const navItems = [
   { id: 'playground' as NavItem, label: 'Playground', icon: MessageSquare },
-  { id: 'video' as NavItem, label: 'Video Studio', icon: Video },
-  { id: 'courses' as NavItem, label: 'Courses', icon: GraduationCap, badge: 'Soon' },
   { id: 'profiles' as NavItem, label: 'Profiles', icon: FolderOpen, badge: 'Soon' },
   { id: 'tools' as NavItem, label: 'Tools', icon: Wrench, badge: 'Soon' },
 ];
