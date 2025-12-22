@@ -88,6 +88,11 @@ export async function GET(request: NextRequest) {
 
 async function callSoraV2API(request: SoraVideoRequest): Promise<SoraVideoResponse> {
   try {
+    // Determine resolution based on aspect ratio (portrait vs landscape)
+    // Sora 2 supports: Portrait 720x1280, Landscape 1280x720
+    const isPortrait = request.aspectRatio === '9:16';
+    const size = isPortrait ? '720x1280' : '1280x720';
+
     const response = await fetch(`${OPENAI_API_BASE}/videos`, {
       method: 'POST',
       headers: {
@@ -95,11 +100,9 @@ async function callSoraV2API(request: SoraVideoRequest): Promise<SoraVideoRespon
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        model: 'sora-2',
         prompt: request.prompt.trim(),
-        duration: request.duration || 10,
-        resolution: request.resolution || '1080p',
-        style: request.style || 'realistic',
-        aspect_ratio: request.aspectRatio || '16:9',
+        size: size,
       }),
     });
 

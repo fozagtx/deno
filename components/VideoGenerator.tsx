@@ -10,9 +10,6 @@ interface VideoGeneratorProps {
 
 export default function VideoGenerator({ onVideoGenerated }: VideoGeneratorProps) {
   const [prompt, setPrompt] = useState('');
-  const [duration, setDuration] = useState(10);
-  const [resolution, setResolution] = useState<SoraVideoRequest['resolution']>('1080p');
-  const [style, setStyle] = useState<SoraVideoRequest['style']>('realistic');
   const [aspectRatio, setAspectRatio] = useState<SoraVideoRequest['aspectRatio']>('16:9');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +27,6 @@ export default function VideoGenerator({ onVideoGenerated }: VideoGeneratorProps
 
     const request: SoraVideoRequest = {
       prompt: prompt.trim(),
-      duration,
-      resolution,
-      style,
       aspectRatio,
     };
 
@@ -94,97 +88,26 @@ export default function VideoGenerator({ onVideoGenerated }: VideoGeneratorProps
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label htmlFor="duration" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Duration
-                </span>
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  id="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                  min="1"
-                  max="60"
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                  disabled={isGenerating}
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">seconds</span>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="resolution" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Resolution
-                </span>
-              </label>
-              <select
-                id="resolution"
-                value={resolution}
-                onChange={(e) => setResolution(e.target.value as SoraVideoRequest['resolution'])}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                disabled={isGenerating}
-              >
-                <option value="720p">720p HD</option>
-                <option value="1080p">1080p Full HD</option>
-                <option value="4k">4K Ultra HD</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="style" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                  Style
-                </span>
-              </label>
-              <select
-                id="style"
-                value={style}
-                onChange={(e) => setStyle(e.target.value as SoraVideoRequest['style'])}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                disabled={isGenerating}
-              >
-                <option value="realistic">Realistic</option>
-                <option value="cinematic">Cinematic</option>
-                <option value="animated">Animated</option>
-                <option value="artistic">Artistic</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="aspectRatio" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                  </svg>
-                  Aspect Ratio
-                </span>
-              </label>
-              <select
-                id="aspectRatio"
-                value={aspectRatio}
-                onChange={(e) => setAspectRatio(e.target.value as SoraVideoRequest['aspectRatio'])}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                disabled={isGenerating}
-              >
-                <option value="16:9">16:9 Landscape</option>
-                <option value="9:16">9:16 Portrait</option>
-                <option value="1:1">1:1 Square</option>
-              </select>
-            </div>
+          <div>
+            <label htmlFor="aspectRatio" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+                Orientation
+              </span>
+            </label>
+            <select
+              id="aspectRatio"
+              value={aspectRatio}
+              onChange={(e) => setAspectRatio(e.target.value as SoraVideoRequest['aspectRatio'])}
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+              disabled={isGenerating}
+            >
+              <option value="16:9">Landscape (1280x720)</option>
+              <option value="9:16">Portrait (720x1280)</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">$0.10 per second of video</p>
           </div>
 
           {error && (
