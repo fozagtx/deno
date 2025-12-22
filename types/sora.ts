@@ -1,9 +1,8 @@
 export interface SoraVideoRequest {
   prompt: string;
-  duration?: number;
-  resolution?: '720p' | '1080p' | '4k';
-  style?: 'realistic' | 'cinematic' | 'animated' | 'artistic';
-  aspectRatio?: '16:9' | '9:16' | '1:1';
+  // Sora 2 uses size based on aspect ratio:
+  // Portrait: 720x1280, Landscape: 1280x720
+  aspectRatio?: '16:9' | '9:16';
 }
 
 export interface SoraVideoResponse {
