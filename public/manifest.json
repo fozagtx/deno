@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Hackathon Doc Chat",
+  "name": "Deno",
   "version": "1.0.0",
-  "description": "Chat with any webpage as your AI design thinking partner. Analyze documents, brainstorm ideas, and develop winning strategies.",
+  "description": "Your AI assistant for browsing and understanding web content.",
   "permissions": [
     "activeTab",
     "storage",
@@ -18,7 +18,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Toggle Doc Chat"
+    "default_title": "Toggle Deno"
   },
   "background": {
     "service_worker": "background.js",
