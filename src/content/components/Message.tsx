@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserIcon, BotIcon } from './Icons';
+import { BotIcon } from './Icons';
 import { ChatMessage } from '../../shared/types';
 
 interface MessageProps {
@@ -14,8 +14,6 @@ const formatContent = (content: string): string => {
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     // Bold
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     // Line breaks (convert double newlines to paragraphs)
     .split(/\n\n+/)
     .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
@@ -26,7 +24,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
   return (
     <div className={`hdc-message ${message.role}`}>
       <div className="hdc-message-avatar">
-        {message.role === 'user' ? <UserIcon /> : <BotIcon />}
+        {message.role === 'user' ? <span className="hdc-avatar-text">YU</span> : <BotIcon />}
       </div>
       <div className="hdc-message-content">
         <div

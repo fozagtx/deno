@@ -14,10 +14,10 @@ import {
 import { AIModel, ChatMessage } from '../../shared/types';
 
 const QUICK_ACTIONS = [
-  { label: 'Analyze this page', prompt: 'Analyze the key points from this page. What are the main requirements or ideas presented?' },
-  { label: 'Find pain points', prompt: 'Based on this content, what user pain points or problems could I address?' },
-  { label: 'Suggest solutions', prompt: 'What innovative solutions would you suggest based on this context?' },
-  { label: 'Tech recommendations', prompt: 'What technology stack would work well for building something based on this?' },
+  { label: 'Summarize this page', prompt: 'Give me a brief summary of what this page is about.' },
+  { label: 'Key points', prompt: 'What are the main points or takeaways from this page?' },
+  { label: 'Explain simply', prompt: 'Explain the content of this page in simple terms.' },
+  { label: 'Questions to ask', prompt: 'What are some good questions I should consider about this content?' },
 ];
 
 interface SidebarProps {
@@ -199,8 +199,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="hdc-header">
           <div className="hdc-header-row">
             <div className="hdc-logo">
-              <div className="hdc-logo-icon">DC</div>
-              <span className="hdc-logo-text">Doc Chat</span>
+              <div className="hdc-logo-icon">D</div>
+              <span className="hdc-logo-text">Deno</span>
             </div>
             <button className="hdc-close-btn" onClick={onClose}>
               <XIcon />
@@ -235,9 +235,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <div className="hdc-empty-icon">
               <SparklesIcon />
             </div>
-            <h3 className="hdc-empty-title">Design Thinking Partner</h3>
+            <h3 className="hdc-empty-title">Deno</h3>
             <p className="hdc-empty-desc">
-              I can help you analyze documents, brainstorm ideas, and develop strategies for your hackathon project.
+              Ask me anything about this page. I can help you understand, summarize, and analyze web content.
             </p>
           </div>
         ) : (
